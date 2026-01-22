@@ -4,6 +4,7 @@ from werkzeug.utils import secure_filename
 from .models import User, Product
 from . import db
 import os
+import base64
 from PIL import Image
 
 main = Blueprint('main', __name__)
