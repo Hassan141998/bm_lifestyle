@@ -111,38 +111,43 @@ def admin_dashboard():
     products = Product.query.all()
     return render_template('admin_dashboard.html', products=products)
 
-import base64
-
 @main.route('/admin/product/new', methods=['GET', 'POST'])
 @login_required
 def new_product():
     if request.method == 'POST':
-        name = request.form.get('name')
-        price = request.form.get('price')
-        description = request.form.get('description')
-        category = request.form.get('category')
-        image = request.files.get('image')
+        try:
+            name = request.form.get('name')
+            price = request.form.get('price')
+            description = request.form.get('description')
+            category = request.form.get('category')
+            image = request.files.get('image')
 
-        image_data = 'default.jpg'
-        if image:
-            # Vercel doesn't support local file system persistence. 
-            # We convert the image to base64 and store it directly in the DB.
-            img_bytes = image.read()
-            b64_string = base64.b64encode(img_bytes).decode('utf-8')
-            # Determine mime type (simple guess)
-            mime_type = 'image/jpeg'
-            if image.filename.lower().endswith('.png'):
-                mime_type = 'image/png'
-            elif image.filename.lower().endswith('.gif'):
-                mime_type = 'image/gif'
-                
-            image_data = f"data:{mime_type};base64,{b64_string}"
+            image_data = 'default.jpg'
+            if image:
+                # Vercel doesn't support local file system persistence. 
+                # We convert the image to base64 and store it directly in the DB.
+                img_bytes = image.read()
+                b64_string = base64.b64encode(img_bytes).decode('utf-8')
+                # Determine mime type (simple guess)
+                mime_type = 'image/jpeg'
+                if image.filename.lower().endswith('.png'):
+                    mime_type = 'image/png'
+                elif image.filename.lower().endswith('.gif'):
+                    mime_type = 'image/gif'
+                    
+                image_data = f"data:{mime_type};base64,{b64_string}"
 
-        product = Product(name=name, price=float(price), description=description, category=category, image_file=image_data)
-        db.session.add(product)
-        db.session.commit()
-        flash('Product has been created!', 'success')
-        return redirect(url_for('main.admin_dashboard'))
+            product = Product(name=name, price=float(price), description=description, category=category, image_file=image_data)
+            db.session.add(product)
+            db.session.commit()
+            flash('Product has been created!', 'success')
+            return redirect(url_for('main.admin_dashboard'))
+        except Exception as e:
+            db.session.rollback()
+            flash(f'Error creating product: {str(e)}', 'danger')
+            print(f"ERROR: {e}")  # This will show in Vercel logs
+            import traceback
+            traceback.print_exc()
         
     return render_template('create_product.html', title='New Product')
 
