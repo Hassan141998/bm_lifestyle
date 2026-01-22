@@ -1,0 +1,104 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow border-0">
+                <div class="card-header bg-dark text-white">
+                    <h4 class="mb-0">Edit Product</h4>
+                </div>
+                <div class="card-body p-4">
+                    <form method="POST" enctype="multipart/form-data">
+                        <div class="mb-3">
+                            <label for="name" class="form-label">Product Name</label>
+                            <input type="text" class="form-control" id="name" name="name" value="{{ product.name }}"
+                                required>
+                        </div>
+
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label for="category" class="form-label">Category</label>
+                                <select class="form-select" id="category" name="category" required
+                                    onchange="toggleCustomCategory()">
+                                    <option value="Summer Collection" {% if product.category=='Summer Collection'
+                                        %}selected{% endif %}>Summer Collection</option>
+                                    <option value="Winter Collection" {% if product.category=='Winter Collection'
+                                        %}selected{% endif %}>Winter Collection</option>
+                                    <option value="Formal Wear" {% if product.category=='Formal Wear' %}selected{% endif
+                                        %}>Formal Wear</option>
+                                    <option value="Casual Wear" {% if product.category=='Casual Wear' %}selected{% endif
+                                        %}>Casual Wear</option>
+                                    <option value="Accessories" {% if product.category=='Accessories' %}selected{% endif
+                                        %}>Accessories</option>
+                                    <option value="Other" {% if product.category not in ['Summer
+                                        Collection', 'Winter Collection' , 'Formal Wear' , 'Casual Wear' , 'Accessories'
+                                        ] %}selected{% endif %}>Other (Custom)</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6" id="customCategoryDiv"
+                                style="display: {% if product.category not in ['Summer Collection', 'Winter Collection', 'Formal Wear', 'Casual Wear', 'Accessories'] %}block{% else %}none{% endif %};">
+                                <label for="customCategory" class="form-label">Custom Category</label>
+                                <input type="text" class="form-control" id="customCategory" name="customCategory"
+                                    value="{% if product.category not in ['Summer Collection', 'Winter Collection', 'Formal Wear', 'Casual Wear', 'Accessories'] %}{{ product.category }}{% endif %}"
+                                    placeholder="Enter category name">
+                            </div>
+                            <div class="col-md-6" id="priceDiv">
+                                <label for="price" class="form-label">Price (Rs)</label>
+                                <input type="number" step="0.01" class="form-control" id="price" name="price"
+                                    value="{{ product.price }}" required>
+                            </div>
+                        </div>
+
+                        <script>
+                            function toggleCustomCategory() {
+                                const categorySelect = document.getElementById('category');
+                                const customDiv = document.getElementById('customCategoryDiv');
+                                const priceDiv = document.getElementById('priceDiv');
+                                if (categorySelect.value === 'Other') {
+                                    customDiv.style.display = 'block';
+                                    priceDiv.classList.remove('col-md-6');
+                                    priceDiv.classList.add('col-md-12');
+                                } else {
+                                    customDiv.style.display = 'none';
+                                    priceDiv.classList.remove('col-md-12');
+                                    priceDiv.classList.add('col-md-6');
+                                }
+                            }
+                        </script>
+
+                        <div class="mb-3">
+                            <label for="description" class="form-label">Description</label>
+                            <textarea class="form-control" id="description" name="description"
+                                rows="4">{{ product.description }}</textarea>
+                        </div>
+
+                        <div class="mb-4">
+                            <label for="image" class="form-label">Product Image</label>
+                            {% if product.image_file and product.image_file != 'default.jpg' %}
+                            <div class="mb-2">
+                                <small class="text-muted">Current image:</small><br>
+                                {% if product.image_file.startswith('data:') %}
+                                <img src="{{ product.image_file }}" alt="Current"
+                                    style="max-width: 150px; height: auto;" class="img-thumbnail">
+                                {% else %}
+                                <img src="{{ url_for('static', filename='images/products/' + product.image_file) }}"
+                                    alt="Current" style="max-width: 150px; height: auto;" class="img-thumbnail">
+                                {% endif %}
+                            </div>
+                            {% endif %}
+                            <input type="file" class="form-control" id="image" name="image">
+                            <div class="form-text">Leave empty to keep current image.</div>
+                        </div>
+
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-unique btn-lg">Update Product</button>
+                            <a href="{{ url_for('main.admin_dashboard') }}" class="btn btn-outline-secondary">Cancel</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
