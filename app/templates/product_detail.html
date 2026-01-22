@@ -11,18 +11,35 @@
     </nav>
 
     <div class="row mt-4">
-        <!-- Product Image -->
+        <!-- Product Image with Zoom -->
         <div class="col-md-6 mb-4">
-            <div class="product-img-wrapper rounded shadow-lg">
+            <div class="product-img-wrapper rounded shadow-lg" style="overflow: hidden; cursor: zoom-in;"
+                onclick="zoomImage(this)">
                 {% if product.image_file.startswith('data:') %}
                 <img src="{{ product.image_file }}" class="img-fluid w-100" alt="{{ product.name }}"
-                    style="height: auto; max-height: 600px;">
+                    style="height: auto; max-height: 600px; transition: transform 0.3s ease;">
                 {% else %}
                 <img src="{{ url_for('static', filename='images/products/' + product.image_file) }}"
-                    class="img-fluid w-100" alt="{{ product.name }}" style="height: auto; max-height: 600px;">
+                    class="img-fluid w-100" alt="{{ product.name }}"
+                    style="height: auto; max-height: 600px; transition: transform 0.3s ease;">
                 {% endif %}
             </div>
         </div>
+
+        <script>
+            function zoomImage(wrapper) {
+                const img = wrapper.querySelector('img');
+                if (wrapper.classList.contains('zoomed')) {
+                    wrapper.classList.remove('zoomed');
+                    wrapper.style.cursor = 'zoom-in';
+                    img.style.transform = 'scale(1)';
+                } else {
+                    wrapper.classList.add('zoomed');
+                    wrapper.style.cursor = 'zoom-out';
+                    img.style.transform = 'scale(1.8)';
+                }
+            }
+        </script>
 
         <!-- Product Details -->
         <div class="col-md-6">
