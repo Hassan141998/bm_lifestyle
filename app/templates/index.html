@@ -56,8 +56,12 @@
             <div class="product-card h-100">
                 <div class="product-img-wrapper">
                     <!-- Assuming images are stored in static/images/products/ -->
+                    {% if product.image_file.startswith('data:') %}
+                    <img src="{{ product.image_file }}" alt="{{ product.name }}">
+                    {% else %}
                     <img src="{{ url_for('static', filename='images/products/' + product.image_file) }}"
                         alt="{{ product.name }}">
+                    {% endif %}
                     <div class="overlay d-flex justify-content-center align-items-center">
                     </div>
                 </div>

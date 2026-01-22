@@ -11,8 +11,12 @@
                 <a href="{{ url_for('main.product_detail', product_id=product.id) }}"
                     class="text-decoration-none text-dark">
                     <div class="product-img-wrapper">
+                        {% if product.image_file.startswith('data:') %}
+                        <img src="{{ product.image_file }}" alt="{{ product.name }}">
+                        {% else %}
                         <img src="{{ url_for('static', filename='images/products/' + product.image_file) }}"
                             alt="{{ product.name }}">
+                        {% endif %}
                     </div>
                     <div class="card-body">
                         <h5 class="card-title fw-bold">{{ product.name }}</h5>

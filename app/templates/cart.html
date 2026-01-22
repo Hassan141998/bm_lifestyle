@@ -22,10 +22,16 @@
                             <tr>
                                 <td class="p-3">
                                     <div class="d-flex align-items-center">
+                                        {% if product.image_file.startswith('data:') %}
+                                        <img src="{{ product.image_file }}" alt="{{ product.name }}"
+                                            style="width: 60px; height: 60px; object-fit: cover; border-radius: 5px;"
+                                            class="me-3">
+                                        {% else %}
                                         <img src="{{ url_for('static', filename='images/products/' + product.image_file) }}"
                                             alt="{{ product.name }}"
                                             style="width: 60px; height: 60px; object-fit: cover; border-radius: 5px;"
                                             class="me-3">
+                                        {% endif %}
                                         <div>
                                             <h6 class="mb-0 fw-bold">{{ product.name }}</h6>
                                             <small class="text-muted">{{ product.category }}</small>

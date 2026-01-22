@@ -14,8 +14,13 @@
         <!-- Product Image -->
         <div class="col-md-6 mb-4">
             <div class="product-img-wrapper rounded shadow-lg">
+                {% if product.image_file.startswith('data:') %}
+                <img src="{{ product.image_file }}" class="img-fluid w-100" alt="{{ product.name }}"
+                    style="height: auto; max-height: 600px;">
+                {% else %}
                 <img src="{{ url_for('static', filename='images/products/' + product.image_file) }}"
                     class="img-fluid w-100" alt="{{ product.name }}" style="height: auto; max-height: 600px;">
+                {% endif %}
             </div>
         </div>
 
