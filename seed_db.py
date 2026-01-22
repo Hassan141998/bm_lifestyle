@@ -5,6 +5,7 @@ from app.models import User, Product
 app = create_app()
 
 with app.app_context():
+    print(f"Connecting to: {app.config['SQLALCHEMY_DATABASE_URI'].split('@')[1] if '@' in app.config['SQLALCHEMY_DATABASE_URI'] else 'Local SQLite'}")
     db.create_all()
     if not User.query.filter_by(username='admin').first():
         user = User(username='admin', password='password123') 
