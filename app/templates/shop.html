@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container py-5">
+    <h1 class="text-center mb-5 display-4 fw-bold">Our Collection</h1>
+
+    <div class="row g-4">
+        {% for product in products %}
+        <div class="col-md-3 col-sm-6">
+            <div class="product-card h-100">
+                <a href="{{ url_for('main.product_detail', product_id=product.id) }}"
+                    class="text-decoration-none text-dark">
+                    <div class="product-img-wrapper">
+                        <img src="{{ url_for('static', filename='images/products/' + product.image_file) }}"
+                            alt="{{ product.name }}">
+                    </div>
+                    <div class="card-body">
+                        <h5 class="card-title fw-bold">{{ product.name }}</h5>
+                        <p class="text-muted small">{{ product.category }}</p>
+                        <div class="d-flex justify-content-between align-items-center mt-3">
+                            <span class="price-tag">Rs {{ product.price }}</span>
+                        </div>
+                    </div>
+                </a>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}
