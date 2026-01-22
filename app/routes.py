@@ -86,6 +86,52 @@ def send_order_email(order, items):
         print(f"Email error: {e}")
         return False
 
+def send_whatsapp_notification(order, items):
+    """Send WhatsApp notification to admin"""
+    try:
+        # Format order details for WhatsApp message
+        items_text = "\n".join([f"- {item.product_name} x{item.quantity} (Rs {item.product_price})" for item in items])
+        
+        message = f"""🛍️ *NEW ORDER RECEIVED*
+
+📋 *Order Number:* {order.order_number}
+📅 *Date:* {order.created_at.strftime('%Y-%m-%d %H:%M')}
+
+👤 *Customer Details:*
+• Name: {order.customer_name}
+• Email: {order.customer_email}
+• Phone: {order.customer_phone}
+
+📍 *Delivery Address:*
+{order.delivery_address}
+{order.city}, {order.postal_code}
+
+🛒 *Order Items:*
+{items_text}
+
+💰 *Total Amount:* Rs {order.total_amount}
+🚚 *Delivery:* {order.delivery_method}
+💳 *Payment:* {order.payment_method}"""
+
+        # URL encode the message
+        import urllib.parse
+        encoded_message = urllib.parse.quote(message)
+        
+        # WhatsApp API URL
+        whatsapp_url = f"https://wa.me/923076379929?text={encoded_message}"
+        
+        # Log the WhatsApp notification URL (in production, you might use WhatsApp Business API)
+        print(f"WHATSAPP NOTIFICATION:")
+        print(f"To: +92 307 6379929")
+        print(f"Order: {order.order_number}")
+        print(f"WhatsApp URL: {whatsapp_url}")
+        print(f"\nMessage:\n{message}")
+        
+        return whatsapp_url
+    except Exception as e:
+        print(f"WhatsApp error: {e}")
+        return None
+
 # --- Public Routes ---
 
 @main.route('/checkout')
@@ -177,6 +223,9 @@ def place_order():
         # Send email notification
         send_order_email(order, order_items)
         
+        # Send WhatsApp notification
+        whatsapp_url = send_whatsapp_notification(order, order_items)
+        
         # Clear cart
         session.pop('cart', None)
         
@@ -195,7 +244,11 @@ def place_order():
 def order_confirmation(order_id):
     order = Order.query.get_or_404(order_id)
     items = OrderItem.query.filter_by(order_id=order_id).all()
-    return render_template('order_confirmation.html', order=order, items=items)
+    
+    # Generate WhatsApp URL for manual sending
+    whatsapp_url = send_whatsapp_notification(order, items)
+    
+    return render_template('order_confirmation.html', order=order, items=items, whatsapp_url=whatsapp_url)
 
 # --- Public Routes ---
 
