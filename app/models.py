@@ -15,6 +15,6 @@ class Product(db.Model):
     name = db.Column(db.String(150), nullable=False)
     price = db.Column(db.Float, nullable=False)
     description = db.Column(db.Text, nullable=True)
-    image_file = db.Column(db.String(100), nullable=False, default='default.jpg')
+    image_file = db.Column(db.Text, nullable=False, default='default.jpg')
     category = db.Column(db.String(50), nullable=False)
     # stock = db.Column(db.Integer, default=1)

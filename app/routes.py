@@ -111,6 +111,8 @@ def admin_dashboard():
     products = Product.query.all()
     return render_template('admin_dashboard.html', products=products)
 
+import base64
+
 @main.route('/admin/product/new', methods=['GET', 'POST'])
 @login_required
 def new_product():
@@ -121,22 +123,22 @@ def new_product():
         category = request.form.get('category')
         image = request.files.get('image')
 
+        image_data = 'default.jpg'
         if image:
-            filename = secure_filename(image.filename)
-            # Ensure upload folder exists
-            os.makedirs(current_app.config['UPLOAD_FOLDER'], exist_ok=True)
-            
-            # Save original
-            image_path = os.path.join(current_app.config['UPLOAD_FOLDER'], filename)
-            image.save(image_path)
-            
-            # Use basic filename for DB
-            image_file = filename
-        else:
-            image_file = 'default.jpg'
+            # Vercel doesn't support local file system persistence. 
+            # We convert the image to base64 and store it directly in the DB.
+            img_bytes = image.read()
+            b64_string = base64.b64encode(img_bytes).decode('utf-8')
+            # Determine mime type (simple guess)
+            mime_type = 'image/jpeg'
+            if image.filename.lower().endswith('.png'):
+                mime_type = 'image/png'
+            elif image.filename.lower().endswith('.gif'):
+                mime_type = 'image/gif'
+                
+            image_data = f"data:{mime_type};base64,{b64_string}"
 
-        product = Product(name=name, price=float(price), description=description, 
-                          category=category, image_file=image_file)
+        product = Product(name=name, price=float(price), description=description, category=category, image_file=image_data)
         db.session.add(product)
         db.session.commit()
         flash('Product has been created!', 'success')
