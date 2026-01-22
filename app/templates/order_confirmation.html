@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-6 text-center">
+            <div class="mb-4">
+                <i class="fas fa-check-circle text-success" style="font-size: 5rem;"></i>
+            </div>
+            <h1 class="display-4 fw-bold mb-3">Order Confirmed!</h1>
+            <p class="lead">Thank you for your order, <strong>{{ order.customer_name }}</strong>!</p>
+
+            <div class="card shadow-sm my-4">
+                <div class="card-body">
+                    <h5 class="card-title">Order Details</h5>
+                    <p class="mb-2"><strong>Order Number:</strong> <span class="text-warning">{{ order.order_number
+                            }}</span></p>
+                    <p class="mb-2"><strong>Order Date:</strong> {{ order.created_at.strftime('%B %d, %Y at %I:%M %p')
+                        }}</p>
+                    <p class="mb-2"><strong>Total Amount:</strong> <span class="h4 text-warning">Rs {{
+                            order.total_amount }}</span></p>
+                    <p class="mb-2"><strong>Payment Method:</strong> {{ order.payment_method }}</p>
+                    <p class="mb-2"><strong>Delivery:</strong> {{ order.delivery_method }}</p>
+                </div>
+            </div>
+
+            <div class="card shadow-sm mb-4">
+                <div class="card-body">
+                    <h5 class="card-title">Items Ordered</h5>
+                    <div class="list-group list-group-flush">
+                        {% for item in items %}
+                        <div class="list-group-item d-flex justify-content-between">
+                            <span>{{ item.product_name }} (x{{ item.quantity }})</span>
+                            <span>Rs {{ item.product_price }}</span>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+
+            <div class="alert alert-info" role="alert">
+                <i class="fas fa-envelope me-2"></i>
+                A confirmation email has been sent to <strong>{{ order.customer_email }}</strong>
+            </div>
+
+            <div class="alert alert-success" role="alert">
+                <i class="fas fa-info-circle me-2"></i>
+                Your order will be delivered to:<br>
+                <strong>{{ order.delivery_address }}, {{ order.city }}, {{ order.postal_code }}</strong>
+            </div>
+
+            <div class="d-grid gap-2 mt-4">
+                <a href="{{ url_for('main.shop') }}" class="btn btn-unique">Continue Shopping</a>
+                <a href="{{ url_for('main.home') }}" class="btn btn-outline-secondary">Back to Home</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -18,3 +18,28 @@ class Product(db.Model):
     image_file = db.Column(db.Text, nullable=False, default='default.jpg')
     category = db.Column(db.String(50), nullable=False)
     # stock = db.Column(db.Integer, default=1)
+
+class Order(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    order_number = db.Column(db.String(20), unique=True, nullable=False)
+    customer_name = db.Column(db.String(150), nullable=False)
+    customer_email = db.Column(db.String(150), nullable=False)
+    customer_phone = db.Column(db.String(20), nullable=False)
+    delivery_address = db.Column(db.Text, nullable=False)
+    city = db.Column(db.String(100), nullable=False)
+    postal_code = db.Column(db.String(20), nullable=False)
+    delivery_method = db.Column(db.String(50), nullable=False)  # Standard, Express
+    payment_method = db.Column(db.String(50), nullable=False)  # COD, Bank Transfer
+    total_amount = db.Column(db.Float, nullable=False)
+    status = db.Column(db.String(50), nullable=False, default='Pending')  # Pending, Processing, Shipped, Delivered
+    created_at = db.Column(db.DateTime, nullable=False, default=db.func.now())
+    items = db.relationship('OrderItem', backref='order', lazy=True, cascade='all, delete-orphan')
+
+class OrderItem(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    order_id = db.Column(db.Integer, db.ForeignKey('order.id'), nullable=False)
+    product_id = db.Column(db.Integer, db.ForeignKey('product.id'), nullable=False)
+    product_name = db.Column(db.String(150), nullable=False)
+    product_price = db.Column(db.Float, nullable=False)
+    quantity = db.Column(db.Integer, nullable=False, default=1)
+    product = db.relationship('Product')

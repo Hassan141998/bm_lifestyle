@@ -69,7 +69,7 @@
                         <span class="h5 fw-bold text-warning">Rs {{ total }}</span>
                     </div>
                     <div class="d-grid gap-2">
-                        <button class="btn btn-unique btn-lg">Checkout</button>
+                        <a href="{{ url_for('main.checkout') }}" class="btn btn-unique btn-lg">Proceed to Checkout</a>
                         <a href="{{ url_for('main.clear_cart') }}" class="btn btn-outline-secondary btn-sm">Clear
                             Cart</a>
                     </div>
