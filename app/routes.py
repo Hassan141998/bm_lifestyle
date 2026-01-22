@@ -15,6 +15,8 @@ import string
 
 main = Blueprint('main', __name__)
 
+# Version: 2.0 - WhatsApp Integration + Base64 Images
+
 def generate_order_number():
     """Generate unique order number like ORD-20260122-ABCD"""
     date_str = datetime.now().strftime('%Y%m%d')
