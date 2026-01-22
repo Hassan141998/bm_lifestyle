@@ -49,6 +49,17 @@
                 <strong>{{ order.delivery_address }}, {{ order.city }}, {{ order.postal_code }}</strong>
             </div>
 
+            {% if whatsapp_url %}
+            <div class="alert alert-info" role="alert">
+                <p class="mb-2"><i class="fab fa-whatsapp me-2"></i><strong>Quick WhatsApp Notification</strong></p>
+                <a href="{{ whatsapp_url }}" target="_blank" class="btn btn-success">
+                    <i class="fab fa-whatsapp me-1"></i>Send Order Details to Admin
+                </a>
+                <small class="d-block mt-2 text-muted">Click to send your order details via WhatsApp to +92 307
+                    6379929</small>
+            </div>
+            {% endif %}
+
             <div class="d-grid gap-2 mt-4">
                 <a href="{{ url_for('main.shop') }}" class="btn btn-unique">Continue Shopping</a>
                 <a href="{{ url_for('main.home') }}" class="btn btn-outline-secondary">Back to Home</a>
