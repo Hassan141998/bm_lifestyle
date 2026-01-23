@@ -43,3 +43,11 @@ class OrderItem(db.Model):
     product_price = db.Column(db.Float, nullable=False)
     quantity = db.Column(db.Integer, nullable=False, default=1)
     product = db.relationship('Product')
+
+class Banner(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    title = db.Column(db.String(150), nullable=True)
+    image_data = db.Column(db.Text, nullable=False)  # Base64 encoded image
+    is_active = db.Column(db.Boolean, default=True, nullable=False)
+    order_position = db.Column(db.Integer, default=0, nullable=False)
+    created_at = db.Column(db.DateTime, nullable=False, default=db.func.now())

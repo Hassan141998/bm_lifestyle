@@ -1,0 +1,92 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="display-6 fw-bold">Manage Banner Images</h1>
+        <a href="{{ url_for('main.admin_dashboard') }}" class="btn btn-outline-secondary">
+            <i class="fas fa-arrow-left me-2"></i>Back to Dashboard
+        </a>
+    </div>
+
+    <!-- Upload New Banner -->
+    <div class="card shadow border-0 mb-4">
+        <div class="card-header bg-dark text-white">
+            <h5 class="mb-0"><i class="fas fa-upload me-2"></i>Upload New Banner</h5>
+        </div>
+        <div class="card-body">
+            <form method="POST" action="{{ url_for('main.upload_banner') }}" enctype="multipart/form-data">
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label for="title" class="form-label">Banner Title (Optional)</label>
+                        <input type="text" class="form-control" id="title" name="title"
+                            placeholder="e.g., Summer Collection 2026">
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label for="image" class="form-label">Banner Image *</label>
+                        <input type="file" class="form-control" id="image" name="image" accept="image/*" required>
+                        <div class="form-text">Recommended size: 1920x600px (16:9 ratio)</div>
+                    </div>
+                </div>
+                <button type="submit" class="btn btn-unique">
+                    <i class="fas fa-cloud-upload-alt me-2"></i>Upload Banner
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Current Banners -->
+    <div class="card shadow border-0">
+        <div class="card-header bg-dark text-white">
+            <h5 class="mb-0"><i class="fas fa-images me-2"></i>Current Banner Images ({{ banners|length }})</h5>
+        </div>
+        <div class="card-body">
+            {% if banners %}
+            <div class="row">
+                {% for banner in banners %}
+                <div class="col-md-4 mb-4">
+                    <div class="card h-100 shadow-sm">
+                        <img src="{{ banner.image_data }}" class="card-img-top" alt="{{ banner.title or 'Banner' }}"
+                            style="height: 200px; object-fit: cover;">
+                        <div class="card-body">
+                            <h6 class="card-title">{{ banner.title or 'Untitled Banner' }}</h6>
+                            <p class="card-text small text-muted">
+                                <i class="fas fa-calendar me-1"></i>{{ banner.created_at.strftime('%Y-%m-%d') }}<br>
+                                <i class="fas fa-sort me-1"></i>Position: {{ banner.order_position }}<br>
+                                <span class="badge bg-{{ 'success' if banner.is_active else 'secondary' }}">
+                                    {{ 'Active' if banner.is_active else 'Inactive' }}
+                                </span>
+                            </p>
+                        </div>
+                        <div class="card-footer bg-white">
+                            <div class="d-flex gap-2">
+                                <form action="{{ url_for('main.toggle_banner', banner_id=banner.id) }}" method="POST"
+                                    class="flex-fill">
+                                    <button type="submit"
+                                        class="btn btn-sm btn-{{ 'warning' if banner.is_active else 'success' }} w-100">
+                                        <i class="fas fa-{{ 'eye-slash' if banner.is_active else 'eye' }} me-1"></i>
+                                        {{ 'Hide' if banner.is_active else 'Show' }}
+                                    </button>
+                                </form>
+                                <form action="{{ url_for('main.delete_banner', banner_id=banner.id) }}" method="POST"
+                                    onsubmit="return confirm('Delete this banner?');" class="flex-fill">
+                                    <button type="submit" class="btn btn-sm btn-danger w-100">
+                                        <i class="fas fa-trash me-1"></i>Delete
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="text-center py-5">
+                <i class="fas fa-image fa-3x text-muted mb-3"></i>
+                <p class="text-muted">No banners uploaded yet. Upload your first banner above!</p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

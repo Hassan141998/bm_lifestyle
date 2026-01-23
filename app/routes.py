@@ -1,7 +1,7 @@
 from flask import Blueprint, render_template, request, redirect, url_for, flash, current_app, session
 from flask_login import login_user, logout_user, login_required, current_user
 from werkzeug.utils import secure_filename
-from .models import User, Product, Order, OrderItem
+from .models import User, Product, Order, OrderItem, Banner
 from . import db
 import os
 import base64
@@ -458,3 +458,79 @@ def delete_product(product_id):
     db.session.commit()
     flash('Product has been deleted!', 'success')
     return redirect(url_for('main.admin_dashboard'))
+
+# --- Banner Management Routes ---
+
+@main.route('/admin/banners')
+@login_required
+def manage_banners():
+    banners = Banner.query.order_by(Banner.order_position.asc(), Banner.created_at.desc()).all()
+    return render_template('manage_banners.html', banners=banners, title='Manage Banners')
+
+@main.route('/admin/banners/upload', methods=['POST'])
+@login_required
+def upload_banner():
+    try:
+        title = request.form.get('title', '')
+        image = request.files.get('image')
+        
+        if not image or not image.filename:
+            flash('Please select an image to upload.', 'warning')
+            return redirect(url_for('main.manage_banners'))
+        
+        # Convert image to Base64
+        img_bytes = image.read()
+        b64_string = base64.b64encode(img_bytes).decode('utf-8')
+        
+        # Determine mime type
+        mime_type = 'image/jpeg'
+        if image.filename.lower().endswith('.png'):
+            mime_type = 'image/png'
+        elif image.filename.lower().endswith('.gif'):
+            mime_type = 'image/gif'
+        elif image.filename.lower().endswith('.webp'):
+            mime_type = 'image/webp'
+        
+        image_data = f"data:{mime_type};base64,{b64_string}"
+        
+        # Get next order position
+        max_position = db.session.query(db.func.max(Banner.order_position)).scalar() or 0
+        
+        # Create new banner
+        banner = Banner(
+            title=title if title else None,
+            image_data=image_data,
+            is_active=True,
+            order_position=max_position + 1
+        )
+        
+        db.session.add(banner)
+        db.session.commit()
+        
+        flash('Banner uploaded successfully!', 'success')
+    except Exception as e:
+        db.session.rollback()
+        flash(f'Error uploading banner: {str(e)}', 'danger')
+        print(f"Banner upload error: {e}")
+        import traceback
+        traceback.print_exc()
+    
+    return redirect(url_for('main.manage_banners'))
+
+@main.route('/admin/banners/<int:banner_id>/toggle', methods=['POST'])
+@login_required
+def toggle_banner(banner_id):
+    banner = Banner.query.get_or_404(banner_id)
+    banner.is_active = not banner.is_active
+    db.session.commit()
+    flash(f'Banner {"activated" if banner.is_active else "deactivated"} successfully!', 'success')
+    return redirect(url_for('main.manage_banners'))
+
+@main.route('/admin/banners/<int:banner_id>/delete', methods=['POST'])
+@login_required
+def delete_banner(banner_id):
+    banner = Banner.query.get_or_404(banner_id)
+    db.session.delete(banner)
+    db.session.commit()
+    flash('Banner deleted successfully!', 'success')
+    return redirect(url_for('main.manage_banners'))
