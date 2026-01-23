@@ -298,7 +298,8 @@ def clear_cart():
 @main.route('/')
 def home():
     products = Product.query.order_by(Product.id.desc()).limit(8).all()
-    return render_template('index.html', products=products)
+    banners = Banner.query.filter_by(is_active=True).order_by(Banner.order_position.asc()).all()
+    return render_template('index.html', products=products, banners=banners)
 
 @main.route('/shop')
 def shop():
