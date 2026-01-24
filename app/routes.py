@@ -151,19 +151,44 @@ def send_whatsapp_notification(order, items):
 🚚 *Delivery:* {order.delivery_method}
 💳 *Payment:* {order.payment_method}"""
 
+        # --- Twilio Integration ---
+        # Check if Twilio credentials exist in environment variables
+        twilio_sid = os.environ.get('TWILIO_ACCOUNT_SID')
+        twilio_token = os.environ.get('TWILIO_AUTH_TOKEN')
+        from_whatsapp_number = os.environ.get('TWILIO_FROM_NUMBER') # e.g., 'whatsapp:+14155238886'
+        to_whatsapp_number = os.environ.get('TWILIO_TO_NUMBER')     # e.g., 'whatsapp:+923076379929'
+
+        if twilio_sid and twilio_token and from_whatsapp_number and to_whatsapp_number:
+            try:
+                from twilio.rest import Client
+                client = Client(twilio_sid, twilio_token)
+
+                # Send message with a timeout to avoid hanging the app
+                client.messages.create(
+                    body=message,
+                    from_=from_whatsapp_number,
+                    to=to_whatsapp_number
+                )
+                print("Twilio WhatsApp notification sent successfully!")
+                return None # Return None as we don't need a manual link if sent automatically
+            except Exception as twilio_error:
+                print(f"Twilio API Error: {twilio_error}")
+                # Fallback to manual link if Twilio fails
+
+        # --- Manual Fallback ---
         # URL encode the message
         import urllib.parse
         encoded_message = urllib.parse.quote(message)
         
         # WhatsApp API URL
-        whatsapp_url = f"https://wa.me/923076379929?text={encoded_message}"
+        # Use the number from env if available, else default
+        admin_number = to_whatsapp_number.replace('whatsapp:', '') if to_whatsapp_number else "+923076379929"
+        whatsapp_url = f"https://wa.me/{admin_number}?text={encoded_message}"
         
-        # Log the WhatsApp notification URL (in production, you might use WhatsApp Business API)
-        print(f"WHATSAPP NOTIFICATION:")
-        print(f"To: +92 307 6379929")
+        print(f"WHATSAPP NOTIFICATION (Manual Link):")
+        print(f"To: {admin_number}")
         print(f"Order: {order.order_number}")
         print(f"WhatsApp URL: {whatsapp_url}")
-        print(f"\nMessage:\n{message}")
         
         return whatsapp_url
     except Exception as e:
@@ -283,10 +308,10 @@ def order_confirmation(order_id):
     order = Order.query.get_or_404(order_id)
     items = OrderItem.query.filter_by(order_id=order_id).all()
     
-    # Generate WhatsApp URL for manual sending
-    whatsapp_url = send_whatsapp_notification(order, items)
+    # Note: WhatsApp notification is already sent in place_order()
+    # We only show the order items here.
     
-    return render_template('order_confirmation.html', order=order, items=items, whatsapp_url=whatsapp_url)
+    return render_template('order_confirmation.html', order=order, items=items)
 
 # --- Public Routes ---
 
