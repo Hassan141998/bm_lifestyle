@@ -12,10 +12,46 @@ from email.mime.multipart import MIMEMultipart
 from datetime import datetime
 import random
 import string
+from io import BytesIO
 
 main = Blueprint('main', __name__)
 
-# Version: 2.0 - WhatsApp Integration + Base64 Images
+# Version: 2.1 - Image Compression for Vercel Payload Limits
+
+def compress_image(image_file, max_width=800, quality=85):
+    """
+    Compress and resize image to reduce payload size for Vercel.
+    Vercel has a 4.5MB payload limit for serverless functions.
+    """
+    try:
+        # Open the image
+        img = Image.open(image_file)
+        
+        # Convert RGBA to RGB if necessary (for JPEG compatibility)
+        if img.mode in ('RGBA', 'LA', 'P'):
+            background = Image.new('RGB', img.size, (255, 255, 255))
+            if img.mode == 'P':
+                img = img.convert('RGBA')
+            background.paste(img, mask=img.split()[-1] if img.mode == 'RGBA' else None)
+            img = background
+        
+        # Resize if image is too large
+        if img.width > max_width:
+            ratio = max_width / img.width
+            new_height = int(img.height * ratio)
+            img = img.resize((max_width, new_height), Image.Resampling.LANCZOS)
+        
+        # Save to BytesIO with compression
+        output = BytesIO()
+        img.save(output, format='JPEG', quality=quality, optimize=True)
+        output.seek(0)
+        
+        return output
+    except Exception as e:
+        print(f"Image compression error: {e}")
+        # If compression fails, return original
+        image_file.seek(0)
+        return image_file
 
 def generate_order_number():
     """Generate unique order number like ORD-20260122-ABCD"""
@@ -379,19 +415,20 @@ def new_product():
                 category = custom_category
 
             image_data = 'default.jpg'
-            if image:
-                # Vercel doesn't support local file system persistence. 
-                # We convert the image to base64 and store it directly in the DB.
-                img_bytes = image.read()
+            if image and image.filename:
+                # Compress image before converting to Base64
+                compressed_image = compress_image(image)
+                img_bytes = compressed_image.read()
+                
+                # Check if compressed size is still too large (>3MB after compression)
+                size_mb = len(img_bytes) / (1024 * 1024)
+                if size_mb > 3:
+                    flash(f'Image is too large ({size_mb:.1f}MB). Please use a smaller image.', 'warning')
+                    return redirect(url_for('main.new_product'))
+                
                 b64_string = base64.b64encode(img_bytes).decode('utf-8')
-                # Determine mime type (simple guess)
-                mime_type = 'image/jpeg'
-                if image.filename.lower().endswith('.png'):
-                    mime_type = 'image/png'
-                elif image.filename.lower().endswith('.gif'):
-                    mime_type = 'image/gif'
-                    
-                image_data = f"data:{mime_type};base64,{b64_string}"
+                # Always use JPEG for compressed images
+                image_data = f"data:image/jpeg;base64,{b64_string}"
 
             product = Product(name=name, price=float(price), description=description, category=category, image_file=image_data)
             db.session.add(product)
@@ -430,14 +467,19 @@ def edit_product(product_id):
             # Handle image update
             image = request.files.get('image')
             if image and image.filename:
-                img_bytes = image.read()
+                # Compress image before converting to Base64
+                compressed_image = compress_image(image)
+                img_bytes = compressed_image.read()
+                
+                # Check if compressed size is still too large (>3MB after compression)
+                size_mb = len(img_bytes) / (1024 * 1024)
+                if size_mb > 3:
+                    flash(f'Image is too large ({size_mb:.1f}MB). Please use a smaller image.', 'warning')
+                    return redirect(url_for('main.edit_product', product_id=product_id))
+                
                 b64_string = base64.b64encode(img_bytes).decode('utf-8')
-                mime_type = 'image/jpeg'
-                if image.filename.lower().endswith('.png'):
-                    mime_type = 'image/png'
-                elif image.filename.lower().endswith('.gif'):
-                    mime_type = 'image/gif'
-                product.image_file = f"data:{mime_type};base64,{b64_string}"
+                # Always use JPEG for compressed images
+                product.image_file = f"data:image/jpeg;base64,{b64_string}"
             
             db.session.commit()
             flash('Product updated successfully!', 'success')
@@ -479,20 +521,20 @@ def upload_banner():
             flash('Please select an image to upload.', 'warning')
             return redirect(url_for('main.manage_banners'))
         
-        # Convert image to Base64
-        img_bytes = image.read()
+        # Compress image before converting to Base64
+        # Use larger max_width for banners (1200px) and higher quality (90%)
+        compressed_image = compress_image(image, max_width=1200, quality=90)
+        img_bytes = compressed_image.read()
+        
+        # Check if compressed size is still too large (>3MB after compression)
+        size_mb = len(img_bytes) / (1024 * 1024)
+        if size_mb > 3:
+            flash(f'Banner image is too large ({size_mb:.1f}MB). Please use a smaller image.', 'warning')
+            return redirect(url_for('main.manage_banners'))
+        
         b64_string = base64.b64encode(img_bytes).decode('utf-8')
-        
-        # Determine mime type
-        mime_type = 'image/jpeg'
-        if image.filename.lower().endswith('.png'):
-            mime_type = 'image/png'
-        elif image.filename.lower().endswith('.gif'):
-            mime_type = 'image/gif'
-        elif image.filename.lower().endswith('.webp'):
-            mime_type = 'image/webp'
-        
-        image_data = f"data:{mime_type};base64,{b64_string}"
+        # Always use JPEG for compressed images
+        image_data = f"data:image/jpeg;base64,{b64_string}"
         
         # Get next order position
         max_position = db.session.query(db.func.max(Banner.order_position)).scalar() or 0

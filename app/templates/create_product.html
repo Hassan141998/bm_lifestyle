@@ -63,8 +63,12 @@
 
                         <div class="mb-4">
                             <label for="image" class="form-label">Product Image</label>
-                            <input type="file" class="form-control" id="image" name="image">
-                            <div class="form-text">Choose a high-quality image for best display.</div>
+                            <input type="file" class="form-control" id="image" name="image" accept="image/*">
+                            <div class="form-text">
+                                <i class="fas fa-info-circle me-1"></i>
+                                Images are automatically compressed and optimized for web. For best results, use
+                                high-quality images under 5MB.
+                            </div>
                         </div>
 
                         <div class="d-grid gap-2">
